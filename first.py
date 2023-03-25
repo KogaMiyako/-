@@ -1,4 +1,5 @@
 import numpy as np
+import sympy
 
 
 def steepest_descent(f, grad_f, x0, max_iter=100, eps=1e-6):
@@ -130,11 +131,51 @@ def line_search(f, grad_f, x, d):
     return a
 
 
+def golden_section_search(f, a, b, eps):
+    """
+    黄金分割法进行精确搜索
+    :param f: 目标函数
+    :param a: 初始区间左端点
+    :param b: 初始区间右端点
+    :param eps: 停止准则，当区间长度小于eps时停止搜索
+    :return: 区间内函数极小值点
+    """
+    rho = (3 - np.sqrt(5)) / 2  # 黄金分割常数
+    x1 = a + rho * (b - a)
+    x2 = b - rho * (b - a)
+    f1 = f(x1)
+    f2 = f(x2)
+    while (b - a) >= eps:
+        if f1 < f2:
+            b = x2
+            x2 = x1
+            f2 = f1
+            x1 = a + rho * (b - a)
+            f1 = f(x1)
+        else:
+            a = x1
+            x1 = x2
+            f1 = f2
+            x2 = b - rho * (b - a)
+            f2 = f(x2)
+    return (a + b) / 2
+
+
+def easy_alpha(x, d):
+    a1 = sympy.symbols('a1')
+    x1 = x + a1 * d
+    f = 0.5 * x1.T @ G @ x1 + b.T @ x1
+    df = sympy.diff(f, a1)
+    a = float(sympy.solve(df, a1)[0])
+    return a
+
+
 if __name__ == '__main__':
     # 设置n 2ab
     n = 257
     x0 = np.zeros((n, 1))
     a = np.random.randint(10, size=(n, 1))
+    global G, b
     G = a.dot(a.T) + np.random.randint(2) * np.eye(n)
     b = 0.5 * G.dot(np.ones((n, 1)))
 
